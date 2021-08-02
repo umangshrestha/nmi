@@ -3,7 +3,6 @@ from tokens import Token, TokenInfo
 
 
 def test_lexer():
-
     data: str = \
 """
 let square = func(n) {
@@ -13,6 +12,8 @@ let data = 3.0;
 let out = square(data);
 print(out);
 """
+
+
     lexer: Lexer = Lexer(data)
     tests = [
         TokenInfo(type=Token.LET, literal="let", pos=1, line=2) ,

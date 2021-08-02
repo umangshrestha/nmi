@@ -74,6 +74,7 @@ Token = Enum("Token", [
     "IF",        
     "ELSE",      
     "RETURN",    
+    "PRINT"
 ])
 
 
@@ -84,7 +85,8 @@ keywords: Dict[str, Token] = {
     "else"  : Token.ELSE,
     "true"  : Token.TRUE,
     "false" : Token.FALSE,
-    "return": Token.RETURN
+    "return": Token.RETURN,
+    "print" : Token.PRINT,
 }
 
 def get_token_for_keyword(data: str) -> Token:

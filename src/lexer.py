@@ -1,5 +1,6 @@
 from tokens import TokenInfo, Token, get_token_for_keyword
 
+
 class Lexer(object):
     def __init__(self, input_data: str) -> None:
         self.input: str = input_data      # Actual data
@@ -59,6 +60,7 @@ class Lexer(object):
                 self.read_char() # compensating for peek
                 self.read_char() # going to next char
                 return tok
+         
 
         switcher = {
             "+": TokenInfo(Token.PLUS,   self.ch, self.linepos-1, self.lineno),  
@@ -91,6 +93,18 @@ class Lexer(object):
             self.read_char() # going to next char
             return tok
         
+        elif self.ch == '\"':
+            pos = self.pos 
+            linepos = self.linepos -1
+            self.read_char()
+            while self.ch != '\"':
+                if self.is_whitespace() or self.ch == "\x00":
+                    raise SyntaxError("string literal not closed")
+                self.read_char()
+            data: str = self.input[pos: self.pos]
+            self.read_char()
+            return TokenInfo(Token.STRING, data, linepos, self.lineno) 
+
         elif self.is_letter():
             # checking string charectors
             # finding the start and end pos of string
