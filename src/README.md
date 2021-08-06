@@ -3,6 +3,6 @@ I have heavily followed the book [Writing interpretor in GO](https://interpreter
 
 * [lexer](https://python.plainenglish.io/writing-an-interpreter-in-python-from-scratch-part-1-af7698cff0d9)
 
-* [parser1] (https://python.plainenglish.io/writing-an-interpreter-in-python-from-scratch-part-2-fdddc591941)
+* [parser1](https://python.plainenglish.io/writing-an-interpreter-in-python-from-scratch-part-2-fdddc591941)
 
-* [parser2] (https://python.plainenglish.io/lets-build-an-interpreter-in-python-from-scratch-6ddfed84cbfc)
+* [parser2](https://python.plainenglish.io/lets-build-an-interpreter-in-python-from-scratch-6ddfed84cbfc)
