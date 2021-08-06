@@ -1,6 +1,8 @@
 class Node:  pass
 class Statement(Node): pass
 class Expression(Node): pass
+storage = {}
+
 
 class Literal(Expression):
     def __init__(self, typ: str, value: str):
@@ -28,20 +30,20 @@ class IntegerLiteral(Literal):
     def type_casting(self) -> int:
        return int(self.value)
 
+
 class FloatLiteral(Literal):    
     def type_casting(self) -> float:
        return float(self.value)
+
 
 class StringLiteral(Literal):    
     def type_casting(self) -> str:
        return str(self.value)
 
+
 class BooleanLiteral(Literal):    
     def type_casting(self) -> bool:
        return True if self.type == "TRUE" else False
-
-
-storage = {}
 
 
 class LetStatement(Statement):
@@ -55,6 +57,7 @@ class LetStatement(Statement):
     def eval(self):
         storage[self.name] = self.expr.eval()
 
+
 class AssignStatement(Statement):
     def __init__(self,name: str, expr: Expression):   
         self.name = name
@@ -67,6 +70,7 @@ class AssignStatement(Statement):
         if self.name not in storage:
             raise NameError(f'"{self.name}" not defined')
         storage[self.name] = self.expr.eval()
+
 
 class Identifier(Expression):
     def __init__(self, name): 
@@ -150,15 +154,20 @@ class PrefixExpression(Expression):
         }
         return operator[self.operator](self.right.eval()) 
 
+
 class PrintStatement(Statement):
-    def __init__(self, value: Expression):
+    def __init__(self, state, value: Expression):
+        self.state = state
         self.value = value
 
     def __repr__(self) -> str:
         return f"(print {self.value})"
 
     def eval(self):
-        print(self.value.eval())
+        if self.state == "println":
+            print(self.value.eval())
+        else:
+            print(self.value.eval(), end="")
 
 
 

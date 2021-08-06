@@ -73,11 +73,11 @@ class Token(NewEnum):
     ELSE    = re.compile(r'else')
     NAN     = re.compile(r'nan')
     LET     = re.compile(r'let')
-    PRINT     = re.compile(r'println')
+    PRINT     = re.compile(r'(println)|(print)')
     # variables
     ID      = re.compile(r'[_a-zA-Z][_a-zA-Z0-9]?')
     # comments
-    COMMENT = re.compile(r'//.*')
+    COMMENT = re.compile(r'#.*')
     # delimier 
     COMMA   = re.compile(r',')
     SEMICOLON  = re.compile(r';')

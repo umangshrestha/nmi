@@ -1,0 +1,38 @@
+#!/bin/bash
+is_there(){
+    a=$($1 --version 2>&1)
+    if [[ $a =~ "not found" ]]
+    then
+        return 1
+    else
+        return 0
+    fi
+}
+
+
+run_interpretor() {
+    file_name="./nmi/nmi.py" 
+    $1 $file_name $2
+}
+is_there python3
+status=$?
+
+
+main() {
+    if [[ $status==0 ]]
+    then  
+        run_interpretor python3  $1
+    else
+        is_there python
+        status=$?
+        if [[ $status==0 ]]
+        then
+            run_interpretor python $1
+        else
+            echo "python not found in the system"
+        fi
+    fi
+}
+
+echo "file_name: $1"
+main $1

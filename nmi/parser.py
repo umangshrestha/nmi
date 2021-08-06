@@ -1,6 +1,9 @@
 from tokens import *
 from ast import *
 
+
+___all__ = ["Parser"]
+
 class Parser:
     def __init__(self, lex):
         self.lex = lex
@@ -13,7 +16,7 @@ class Parser:
     def update(self):
         self.curr_token = self.next_token
         self.next_token = next(self.lex)
-        if self.next_token == Token.WHITESPACE: 
+        while (self.next_token == Token.WHITESPACE) or (self.next_token == Token.COMMENT): 
             self.next_token = next(self.lex)
         
     def is_next(self, t):
@@ -22,6 +25,7 @@ class Parser:
         self.update()    
 
     def parse_program(self) -> Statement: 
+        ''' This is the generator that need to be called to get the statement.'''
         while self.curr_token.name != EOF:
             if statement := self.parse_statement():
                 yield statement
@@ -43,13 +47,14 @@ class Parser:
     
     def print_statememt(self) -> Statement:
         if self.curr_token == Token.PRINT:
+            state = self.curr_token.value
             self.is_next(Token.LPAREN)
             self.update()
             value = self.parse_expression(Priority.LOWEST)
             self.is_next(Token.RPAREN)
             self.is_next(Token.SEMICOLON) 
             self.update()
-            return PrintStatement(value)
+            return PrintStatement(state, value)
 
     def parse_let_statement(self) -> Statement: 
         if self.curr_token == Token.LET:
@@ -58,7 +63,6 @@ class Parser:
             self.is_next(Token.ASSIGN) # =
             self.update()
             value = self.parse_expression(Priority.LOWEST)
-            print(self.curr_token)
             self.is_next(Token.SEMICOLON) 
             self.update() 
             return LetStatement(variable, value)   
@@ -92,7 +96,8 @@ class Parser:
             # logical operator 
             Token.AND,      Token.OR
         ]
-        while self.next_token != Token.SEMICOLON and precedence <= get_precedence(self.next_token):
+        while self.next_token != Token.SEMICOLON and \
+            precedence <= get_precedence(self.next_token):
             # infix function needs to call infix list
             if self.next_token.name in infix_list:
                 self.update()

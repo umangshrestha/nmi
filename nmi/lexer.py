@@ -1,7 +1,9 @@
-
 from tokens import *
     
-    
+
+___all__ = ["Lexer"]
+
+
 def Lexer(data: str) -> tokenInfo:
     pos = 0 
     while pos < len(data):
@@ -18,6 +20,4 @@ def Lexer(data: str) -> tokenInfo:
         # so in case its read two times handling the EOF
         yield tokenInfo(EOF, '\x00') 
         yield tokenInfo(EOF, '\x00') 
-
-
-        
+      
