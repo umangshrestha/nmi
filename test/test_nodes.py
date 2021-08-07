@@ -67,3 +67,15 @@ def test_prefix(data, expected):
     if string != received.__repr__():
         assert False, f"value error: expected: {string}, Received:{received}"
 
+
+@pytest.mark.parametrize("data, expected", [
+    (Identifier("a"), "a"),
+    (LetStatement(Identifier("a"), Literal(Token.INT.name, 2)), "(let a 2)"),
+    (AssignStatement(Identifier("a"), 4), "(set a 4)"),
+    (PrintStatement("PRINT", "apple"), "(print apple)"),
+    (PrintStatement("PRINTLN", 1230), "(println 1230)"),
+
+])
+def test_assignment(data, expected):
+    if data.__repr__() != expected:
+        assert False, f"value error: expected: {expected}, Received:{data}"
