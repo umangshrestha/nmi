@@ -3,7 +3,7 @@ import re
 from collections import namedtuple
 
 
-tokenInfo = namedtuple("Tokens", ["name", "value"])
+TokenInfo = namedtuple("Tokens", ["name", "value"])
 
 
 class NewEnum(Enum):
@@ -18,10 +18,6 @@ class NewEnum(Enum):
             return self.name == b 
         else:
             return  self.name == b.name
-
-    def __le__(self, b) -> bool:
-        """ When I do <= betweem the Enum I want to check the values"""
-        return  self.value <= b.value
 
     def __hash__(self):
         return id(self.name)
@@ -73,9 +69,10 @@ class Token(NewEnum):
     ELSE    = re.compile(r'else')
     NAN     = re.compile(r'nan')
     LET     = re.compile(r'let')
-    PRINT     = re.compile(r'(println)|(print)')
+    PRINT   = re.compile(r'(println)|(print)')
+    RETURN  = re.compile(r'return')
     # variables
-    ID      = re.compile(r'[_a-zA-Z][_a-zA-Z0-9]?')
+    ID      = re.compile(r'[_a-zA-Z][_a-zA-Z0-9]*')
     # comments
     COMMENT = re.compile(r'#.*')
     # delimier 

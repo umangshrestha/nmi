@@ -50,7 +50,7 @@ class TestLegalData:
         (Token.SEMICOLON, ";"),
     ])
     def test_lexer(self, token, value):
-        expected = TokenInfo(token, value)
+        expected = TokenInfo(token.name, value)
         curr_token = next(self.lexer)
         
         if curr_token != expected:

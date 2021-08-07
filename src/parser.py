@@ -1,183 +1,151 @@
-from typing import List, Callable, Dict
-from tokens import Token, TokenInfo
+from tokens import *
+from nodes import *
 from lexer import Lexer
-from interface import Statement, Program,  Expression 
-from statement import *
-from expression import *
-from enum import Enum
-from precedence import *
 
-
-# infix function needs to call infix list
-infix_list: List[Token] = [
-    # athemetic oeprator
-    Token.PLUS,    
-    Token.MINUS,   
-    Token.DIVIDE,  
-    Token.TIMES,   
-    Token.MODULUS, 
-    # comparision operator
-    Token.EQUAL,   
-    Token.LARGE,   
-    Token.LARGEEQ, 
-    Token.SMALL,   
-    Token.SMALLEQ,   
-]
+___all__ = ["Parser"]
 
 class Parser:
-    def __init__(self, lexer):
-        self.lexer = lexer
-        self.cur_token: TokenInfo = self.lexer.next_token()
-        self.next_token: TokenInfo = self.lexer.next_token()
-        self.errors: List[string] = []
-  
-    def read_next_token(self):
-        self.cur_token  = self.next_token
-        self.next_token = self.lexer.next_token()
+    def __init__(self, lex):
+        self.lex = lex
+        self.program = []
+        self.curr_token = None
+        self.next_token = None
+        self.update()
+        self.update()
 
-    def remove_newline(self):
-        self.read_token()
-        while self.cur_token != "\n":
-            self.read_token() 
+    def update(self):
+        self.curr_token = self.next_token
+        self.next_token = next(self.lex) 
+        
+    def is_next(self, t):
+        if self.next_token != t:
+            raise AssertionError(f"expected {t} but got {self.next_token.name}")
+        self.update()    
 
-    def parse_program(self) -> Program:
-        program = Program()
-        while self.cur_token.type != Token.EOF:
-            statement = self.parse_statement()
-            if statement != None:
-                program.statements.append(statement)
-            self.read_next_token()
-        return program
-    
-    def parse_statement(self)->Statement:
-        if self.cur_token.type == Token.LET:
-            return self.parse_let_statement()
-        elif self.cur_token.type == Token.RETURN: 
-            return self.parse_return_statement,
+    def __iter__(self):
+        return self
+
+    def __next__(self) -> Statement: 
+        ''' This is the generator that need to be called to get the statement.'''
+        while self.curr_token.name != EOF:
+            if statement := self.parse_statement():
+                return statement
         else:
-            return self.parse_expression_statement()
+            return EOF
       
-    def parse_expression_statement(self) -> Statement:
-        token = self.cur_token
-        expression = self.parse_expression(Priority.LOWEST)
-        if self.next_token == Token.SEMICOLON:
-            p.read_next_token()
-        return ExpressionStatement(token, expression) 
-       
+    def parse_statement(self) -> Statement:
+        if self.curr_token == ILLEGAL:   
+            raise SyntaxError(f"invalid input: {self.curr_token.value}")
+        if expression := self.parse_let_statement():
+            return expression 
+        elif expression := self.print_statememt():
+            return expression
+        elif expression := self.parse_assign_statement():
+            return expression
+        if expression != None:
+            return expression
+        else:  
+            expression = self.parse_expression(Priority.LOWEST)
+            if self.next_token == Token.SEMICOLON:
+                self.update()
+                self.update()
+            return expression 
+    
+    def print_statememt(self) -> Statement:
+        if self.curr_token == Token.PRINT:
+            state = self.curr_token.value
+            self.is_next(Token.LPAREN)
+            self.update()
+            value = self.parse_expression(Priority.LOWEST)
+            self.is_next(Token.RPAREN)
+            self.is_next(Token.SEMICOLON) 
+            self.update()
+            return PrintStatement(state,value)
+
+    def parse_let_statement(self) -> Statement: 
+        if self.curr_token == Token.LET:
+            self.is_next(Token.ID) 
+            variable = self.curr_token.value
+            self.is_next(Token.ASSIGN) # =
+            self.update()
+            value = self.parse_expression(Priority.LOWEST)
+            self.is_next(Token.SEMICOLON) 
+            self.update() 
+            return LetStatement(variable, value)   
+        
+    def parse_assign_statement(self) -> Statement: 
+        if self.curr_token == Token.ID:
+            variable = self.curr_token.value
+            self.is_next(Token.ASSIGN) # =
+            self.update()
+            value = self.parse_expression(Priority.LOWEST)
+            self.is_next(Token.SEMICOLON) 
+            self.update() 
+            return AssignStatement(variable, value)   
+
     def parse_expression(self, precedence: Priority) -> Expression: 
-        prefix_datatypes: Dict[Token, Callable] = {
-            Token.ID    : Identifier,
-            Token.INT   : IntegerLiteral,
-            Token.FLOAT : FloatLiteral,
-            Token.TRUE  : BooleanLiteral,
-            Token.FALSE : BooleanLiteral,
-            Token.STRING: StringLiteral,
-        }
-        prefix = prefix_datatypes.get(self.cur_token.type, None)
-        if prefix != None:    
-            try:
-                expression = prefix(self.cur_token)
-            except ValueError:
-                error = f"{t.lineno}:{t.linepos} error parsing \"{self.cur_token.value}\" as {self.cur_token.type}"
-                self.errors.append(error)
-                return None
-        else:
-            prefix_function: Dict[token, Callable] = {
-                # parse prefix
-                Token.NOT  : self.parse_prefix_expression,
-                Token.MINUS : self.parse_prefix_expression,
-                # parse expression
-                Token.LPAREN: self.parse_grouped_expresssion,
-                Token.IF    : self.parse_if_expresssion,  
-                Token.FUNCTION : self.parse_if_expresssion,  
-            } 
-            prefix = prefix_function.get(self.cur_token, None)
-            if prefix == None:
-                return None
-        while self.next_token.type != Token.SEMICOLON and \
-            Priority.LOWEST.value < get_precedence(self.next_token.type).value:
-            if self.next_token.type in infix_list:
-                self.read_next_token()
-                self.parse_infix_expression(expression)
-            elif self.next_token.type == Token.LPAREN:
-                self.read_next_token()
-                self.parse_call_expression()
+         expression = self.parse_datatypes() or self.parse_unary()
+        if expression == None:
+            raise SyntaxError(f"operand '{self.curr_token.value}' not defined")
+        
+        infix_list = [
+            # athemetic oeprator
+            Token.PLUS,    Token.MINUS,   
+            Token.DIVIDE,  Token.TIMES,   
+            Token.MODULUS, Token.POWER,
+            # comparision operator
+            Token.EQUAL,   Token.LARGE,   
+            Token.LARGEEQ, Token.SMALL,   
+            Token.SMALLEQ, Token.NOTEQ ,
+            # logical operator 
+            Token.AND,      Token.OR
+        ]
+        while self.next_token != Token.SEMICOLON and \
+            precedence.value <= get_precedence(self.next_token).value:
+            # infix function needs to call infix list
+            if self.next_token.name in infix_list:
+                self.update()
+                expression = self.parse_infix_expression(expression)
             else:
-                return expression
-            self.read_next_token()
+                break
         return expression
-   
+
     def parse_infix_expression(self, left: Expression) -> Expression:
-        token = self.cur_token
-        precedence = get_precedence(self.cur_token.type) 
-        self.read_next_token()
-        right = self.parse_expression(precedence)
-        return InfixExpression(token, left, right)
+            operator = self.curr_token.value
+            precedence = get_precedence(self.curr_token) 
+            self.update()
+            right = self.parse_expression(precedence)
+            return InfixExpression(left, operator , right)
 
-    def parse_prefix_expression(self) -> Expression:
-        token = self.cur_token
-        precedence = self.get_precedence(self.cur_token) 
-        self.read_next_token()
-        right = self.parse_expression(precedence)
-        prntt(token)
-        return InfixExpression(token, right)
-
-    def parse_grouped_expresssion(self) -> Expression:
-        self.read_next_token()
-        expression = self.parse_expression(Priority.LOWEST)
-        return expression if self.next_token.type != Token.RPAREN else None
-        
-    def parse_let_statement(self) -> Statement:
-        print("let statement")
-        tok = self.cur_token
-        if not self.expect_next(Token.ID):
-            return None
-        name = Identifier(self.cur_token)
-        if not self.expect_next(Token.ASSIGN):
-            return None
-        self.read_next_token()
-        value = self.parse_expression(Priority.LOWEST)
-        if self.expect_next(Token.SEMICOLON):
-            self.read_next_token()
-        return LetStatement(tok, name, value)
-
-    def parse_if_expresssion(self) -> Expression:
-        print("if statement")
-        tok = self.cur_token
-        if not self.expect_next(Token.LPAREN):
-            return None
-        self.next_token()
-        condition1 = self.parse_expression()
-        
-        if not self.expect_next(Token.RPAREN):
-            return None
-        if not self.expect_next(Token.LBRACE):
-            return None
-        condition2: self.parse_block_statement()
-
-        if self.next_token.type == Token.ELSE:
-            self.read_next_token()
-            if not self.expect_next(Token.LBRACE):
-                return None
-        value = self.expresssion()
-        if self.expect_next(Token.SEMICOLON):
-            self.read_next_token()
-        return IFStatement(tok, name, value)
-
-    def parse_return_statement(self) -> Statement:
-        print("return statement")
-        tok = self.cur_token
-        self.read_next_token()
-        value = self.parse_expression(Priority.LOWEST)
-        if self.expect_next(Token.SEMICOLON):
-            self.read_next_token()
-        return ReturnStatement(token, value)
-
-    def expect_next(self, t: TokenInfo.type) -> bool:
-        if self.next_token.type == t:
-            self.read_next_token()
-            return True
-        else:
-            l = self.cur_token
-            self.errors.append(f"{l.line}:{l.pos} expected: {t} received: {self.next_token.type}")
-            return False
+    def parse_datatypes(self) -> Expression:
+        datatypes =  [
+            Token.INT.name,
+            Token.FLOAT.name,
+            Token.TRUE.name,
+            Token.FALSE.name,
+            Token.STRING.name,
+        ]
+        if self.curr_token.name in  datatypes:  
+            return  Literal(self.curr_token.name, self.curr_token.value)
+        elif self.curr_token == Token.ID:
+            return Identifier( self.curr_token.value)
+   
+    def parse_unary(self):
+        if self.curr_token.name in  [Token.NOT, Token.MINUS]:
+            operator = self.curr_token.value
+            precedence = get_precedence(self.curr_token) 
+            self.update()
+            right = self.parse_expression(Priority.HIGHER)
+            return PrefixExpression(operator, right)
+        elif self.curr_token.name ==  Token.LPAREN: 
+            self.update()
+            expression = self.parse_expression(Priority.LOWEST)
+            self.is_next(Token.RPAREN)
+            return expression 
+      
+if __name__ == "__main__":
+    data = "let data = 100+100;"
+    for i in Parser(Lexer(data)):
+        if i == EOF:
+            break
+        print(i)

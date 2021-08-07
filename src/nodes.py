@@ -1,8 +1,11 @@
-class Node:  pass
-class Statement(Node): pass
-class Expression(Node): pass
+from tokens import TokenInfo
+
+class Node:  ...
+class Statement(Node): ...
+class Expression(Node): ...
 storage = {}
 
+from tokens import *
 
 class Literal(Expression):
     def __init__(self, typ: str, value: str):
@@ -13,41 +16,37 @@ class Literal(Expression):
         return str(self.value)
     
     def get_type(self) -> str:
-        return self.type
+        # returns data type
+        if self.type == Token.FALSE or self.type == Token.TRUE:
+            return "bool" 
+        return self.type.lower()
 
     def type_casting(self):
-        pass
+        # conversion will be done here for the value to 
+        # actual value
+        if self.type == Token.INT:
+            return int(self.value)
+        elif self.type == Token.FLOAT:
+            return float(self.value)
+        elif self.type ==  Token.STRING:
+            return str(self.value)
+        elif self.type == Token.TRUE :
+            return True 
+        elif self.type == Token.FALSE:
+            return False
+        else:
+            return None
 
     def eval(self):
         try:
             out = self.type_casting()
         except ValueError:
-            raise(f"Error converting {self.value} to {self.type}")
+            raise ValueError(f"Error converting {self.value} to {self.type}")
         return out
 
 
-class IntegerLiteral(Literal):    
-    def type_casting(self) -> int:
-       return int(self.value)
-
-
-class FloatLiteral(Literal):    
-    def type_casting(self) -> float:
-       return float(self.value)
-
-
-class StringLiteral(Literal):    
-    def type_casting(self) -> str:
-       return str(self.value)
-
-
-class BooleanLiteral(Literal):    
-    def type_casting(self) -> bool:
-       return True if self.type == "TRUE" else False
-
-
 class LetStatement(Statement):
-    def __init__(self,name: str, expr: Expression):   
+    def __init__(self, name: str, expr: Expression):   
         self.name = name
         self.expr = expr
 
@@ -57,9 +56,8 @@ class LetStatement(Statement):
     def eval(self):
         storage[self.name] = self.expr.eval()
 
-
 class AssignStatement(Statement):
-    def __init__(self,name: str, expr: Expression):   
+    def __init__(self, name: str, expr: Expression):   
         self.name = name
         self.expr = expr
 
@@ -83,7 +81,6 @@ class Identifier(Expression):
         if self.name in storage:
             return storage[self.name]
         else:
-            print(self.name)
             raise NameError(f"'{self.name}' is not defined")
 
 
@@ -133,16 +130,22 @@ class InfixExpression(Expression):
             "-" : lambda a,b: a-b,
             "*" : lambda a,b: a*b,
             "/" : lambda a,b: a//b,
-            "&&": lambda a,b: a and b,
-            "||": lambda a,b: a or b,
+            "&" : lambda a,b: a and b,
+            "|" : lambda a,b: a or b,
         }
-        return operator[self.operator](self.left.eval(), self.right.eval()) 
-
+        try:
+            return operator[self.operator](self.left.eval(), self.right.eval()) 
+        except TypeError:
+            raise TypeError(f"can't perform {self.operator} between {self.left_type()} and  {self.left_type()}")
 
 class PrefixExpression(Expression):
     def __init__(self, operator: Statement, right: Expression):
         self.operator = operator
         self.right = right
+
+    def get_type(self) -> str:
+        # returns data type
+        return self.type.right
 
     def __repr__(self) -> str:
         return f"({self. operator}{self.right})"
@@ -152,11 +155,15 @@ class PrefixExpression(Expression):
             "!" : lambda a: not a,
             "-" : lambda a: -a,
         }
-        return operator[self.operator](self.right.eval()) 
+        try:
+            return operator[self.operator](self.right.eval())  
+        except TypeError:
+            raise TypeError(f"can't perform {self.operator} between {self.left_type()} and  {self.left_type()}")
+ 
 
 
 class PrintStatement(Statement):
-    def __init__(self, state, value: Expression):
+    def __init__(selfstate, value: Expression):
         self.state = state
         self.value = value
 
@@ -168,12 +175,3 @@ class PrintStatement(Statement):
             print(self.value.eval())
         else:
             print(self.value.eval(), end="")
-
-
-
-
-
-
-
-
-
