@@ -98,10 +98,3 @@ class Parser:
             expression = self.parse_expression(Priority.LOWEST)
             self.is_next(Token.RPAREN)
             return expression 
-
-if __name__ == "__main__":
-    data = "100 +100+100;"
-    for i in Parser(Lexer(data)):
-        if i == EOF:
-            break
-        print(i)
