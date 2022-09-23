@@ -10,4 +10,5 @@ Reference
 * [Part 3: Creating a Parser for arithmetic operations](https://python.plainenglish.io/lets-build-an-interpreter-in-python-from-scratch-6ddfed84cbfc)
 * [Part 4: Creating Parser for Variable Assignment and Printing](https://python.plainenglish.io/writing-an-interpreter-in-python-from-scratch-part-2-fdddc5919410)
 * [Part 5: Creating a Parser for Looping and Branching statement](https://umangshrestha09.medium.com/lets-build-an-interpreter-in-python-from-scratch-821c60cb7ab2)
+* [Part 6: Let’s Build a Bytecode Interpreter using Python](https://python.plainenglish.io/building-a-stack-based-virtual-machine-using-python-fcd5f2203fd5)
 * [Writing interpretor in GO](https://interpreterbook.com/])
