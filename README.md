@@ -1,6 +1,6 @@
 # nmi
 
-This project is deprecated. Follow here for features that are not implmented in the current code base: [Yet Another Interpretor in Java] https://github.com/umangshrestha/yet-another-interpretor-in-java)
+This project is deprecated. Follow here for features that are not implmented in the current code base: [Yet Another Interpretor in Java](https://github.com/umangshrestha/yet-another-interpretor-in-java)
 
 This is a small introduction to beginners for creating their own programming languages 
 All articles will be here [here](https://medium.com).
